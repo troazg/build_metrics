@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const User = mongoose.model('users');
 const bcrypt = require('bcryptjs');
 
-const SECRET = require('./config/keys').jwtSecret;
+const SECRET = require('./keys').jwtSecret;
 
 module.exports = function(passport) {
 
