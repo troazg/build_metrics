@@ -7,7 +7,7 @@ module.exports = {
       if (req.user.isAdmin) {
         return next();
       } else {
-        res.redirect('/dashboard');
+        res.redirect('/builds');
       }
     }
   },
@@ -18,10 +18,10 @@ module.exports = {
     }
     res.redirect('/users/login');
   },
-  
+
   ensureGuest: function(req, res, next){
     if(req.isAuthenticated()){
-      res.redirect('/dashboard');
+      res.redirect('/builds');
     } else {
       return next();
     }

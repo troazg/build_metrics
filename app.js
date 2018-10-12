@@ -7,12 +7,14 @@ const jwt = require('jwt-simple');
 const handlebars = require('express-handlebars');
 const flash = require('connect-flash');
 const session = require('express-session');
+const { ensureAuthenticated } = require('./helpers/auth');
 
 const app = express();
 
 // Load routes
-const users = require('./routes/users');
-const index = require('./routes/index');
+const apiRouter = require('./routes/api')
+const usersRouter = require('./routes/users');
+const buildsRouter = require('./routes/builds');
 
 // Load models
 require('./models/User');
@@ -73,9 +75,16 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/', (req, res) => {
+  res.redirect('/builds');
+});
+
 // Use routes
-app.use('/users', users);
-app.use('/', index);
+// app.use('/api', passport.authenticate('bearer', { session: false }));
+app.use('/api', apiRouter);
+app.use('/users', usersRouter);
+app.use('/builds', ensureAuthenticated)
+app.use('/builds', buildsRouter.ui);
 
 const port = process.env.PORT || 5000;
 
