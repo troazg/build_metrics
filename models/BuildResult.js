@@ -16,7 +16,7 @@ const BuildResultSchema = new Schema({
     ref:'builds',
     required: true
   },
-  jenkinsLink: {
+  link: {
     type: String,
     required: true
   }

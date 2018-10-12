@@ -38,8 +38,8 @@ apiRouter.post('/', (req, res) => {
   // Create Build
   new Build(newBuild)
     .save()
-    .then(story => {
-      res.send(story);
+    .then(build => {
+      res.send(build);
     });
 });
 
@@ -51,7 +51,7 @@ apiRouter.post('/:id/result', (req, res) => {
       passed: req.body.passed,
       time: req.body.time,
       build: build._id,
-      jenkinsLink: req.body.jenkinsLink
+      link: req.body.link
     }
 
     new BuildResult(newBuildResult)
