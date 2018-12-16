@@ -19,6 +19,11 @@ const BuildResultSchema = new Schema({
   link: {
     type: String,
     required: true
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+    required: true
   }
 });
 

@@ -3,8 +3,8 @@ const Schema = mongoose.Schema;
 
 // Create Shema
 const TestResultSchema = new Schema({
-  result: {
-    type: String,
+  passed: {
+    type: Boolean,
     required: true
   },
   runtime: {
@@ -21,10 +21,9 @@ const TestResultSchema = new Schema({
     default: Date.now,
     required: true
   },
-  errors: [{
+  expections: [{
     errorText: {
-      type: String,
-      required: true
+      type: String
     }
   }]
 });

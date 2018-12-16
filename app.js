@@ -7,6 +7,7 @@ const jwt = require('jwt-simple');
 const handlebars = require('express-handlebars');
 const flash = require('connect-flash');
 const session = require('express-session');
+const path = require('path');
 const { ensureAuthenticated } = require('./helpers/auth');
 
 const app = express();
@@ -32,19 +33,24 @@ mongoose.connect(keys.mongoURI, { useNewUrlParser: true })
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
+// Public resources
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Handlebars Helpers
 const {
   truncate,
   formatDate,
-  select
+  select,
+  trimPath
 } = require('./helpers/handlebars');
 
 // Handlebars middleware
 app.engine('handlebars', handlebars({
   helpers: {
     truncate: truncate,
-    formatDate:formatDate,
-    select:select
+    formatDate: formatDate,
+    select: select,
+    trimPath: trimPath
   },
   defaultLayout:'main'
 }));
@@ -69,6 +75,7 @@ app.use((req, res, next) => {
   res.locals.error_msg = req.flash('error_msg');
   res.locals.error = req.flash('error');
   res.locals.user = req.user || null;
+  req.path = path.normalize(req.path);
   if(req.user) {
     res.locals.admin = req.user.isAdmin || false;
   }

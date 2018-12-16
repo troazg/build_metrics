@@ -1,4 +1,5 @@
-<h4>Overall Build Results for: {{build_name}}</h4>
+<h4>Historical Test Results</h4>
+<p><a href="../">&lt;- Back</a></p>
 
 <div class="row">
   <div class="chart-container col-sm">
@@ -8,29 +9,32 @@
     <canvas id="resultChartElement"></canvas>
   </div>
 </div>
-<hr/>
-<h4>Individual Tests</h4>
-<table class="table w-auto">
-  <tr>
-    <th>RSpec ID</th>
-    <th>Description</th>
+
+<hr />
+
+<table class="table">
+  <tr class="table">
+    <th scope="col">Recent Errors</th>
   </tr>
-  {{#each tests}}
-    <tr>
-      <td>{{rspecID}}</td>
-      <td><a href="{{{trimPath ../base_url}}}/tests/{{_id}}">{{description}}</a></td>
-    </tr>
+  {{#each results}}
+    {{#each expections}}
+      <tr>
+        <td>{{this}}</td>
+      </tr>
+    {{/each}}
   {{/each}}
 </table>
 
-<script type="text/javascript">
-  var data = decodeURIComponent("{{{results}}}");
-  var buildData = JSON.parse(data);
 
-  last30 = buildData.slice(-30).reverse();
+
+<script type="text/javascript">
+  var data = decodeURIComponent("{{{results_data}}}");
+  var testData = JSON.parse(data);
+
+  last30 = testData.slice(-30).reverse();
   var timeData = [];
   last30.forEach(e => {
-    timeData.push(e.time)
+    timeData.push(e.runtime)
   })
 
   dateLabels = [];
@@ -48,7 +52,7 @@
   var bucketDate = new Date();
   bucketDate.setDate(today.getDate());
   var resultsArrayIndex = 0;
-  buildData.forEach(e => {
+  testData.forEach(e => {
     var resultDate = new Date(e.timestamp);
 
     resultsArrayIndex = assignToBucket(resultDate, bucketDate, e.passed, resultsArrayIndex, passDataSet, failDataSet);
@@ -75,7 +79,7 @@
         title: {
           display: true,
           fontSize: 18,
-          text: "Total Build Time"
+          text: "Test Run Time"
         },
         scales: {
           xAxes: [{
@@ -110,7 +114,7 @@
       title: {
         display: true,
         fontSize: 18,
-        text: "Overall Build Result"
+        text: "Test Results"
       },
       scales: {
         xAxes: [{ stacked: true }],
