@@ -7,7 +7,7 @@ const BuildResultSchema = new Schema({
     type: Boolean,
     required: true
   },
-  time: {
+  runtime: {
     type: Number,
     required: true
   },

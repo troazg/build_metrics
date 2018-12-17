@@ -2,6 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const testsRouter = require('./tests')
 const path = require('path');
+const { adminOnly } = require('../helpers/auth');
+const jwt = require('jwt-simple');
+const JWT_SECRET = require('../config/keys').jwtSecret;
 const uiRouter = express.Router();
 const apiRouter = express.Router();
 
@@ -25,7 +28,31 @@ uiRouter.get('/', (req, res) => {
     });
 });
 
+uiRouter.get('/register', adminOnly, (req, res) => {
+  res.render('builds/register')
+});
+
+uiRouter.post('/register', adminOnly, (req, res) => {
+  const newBuild = { name: req.body.name };
+
+  // Create Build
+  new Build(newBuild)
+    .save()
+    .then(build => {
+      res.redirect('/');
+    });
+})
+
 uiRouter.get('/:buildId', (req, res) => {
+  var buildName;
+  Build.findById(req.params.buildId).then(build => {
+    buildName = build.name;
+  });
+   var now = new Date();
+  var payload = {
+    build_id: req.params.buildId
+  };
+  var token = jwt.encode(payload, JWT_SECRET);
 
   getResults = BuildResult.find({ build: req.params.buildId })
   .sort('-timestamp')
@@ -40,29 +67,28 @@ uiRouter.get('/:buildId', (req, res) => {
     return tests;
   }).catch(err => { return 'err' });
 
+
+
   Promise.all([getResults, getTests]).then((data) => {
     res.render('builds/show', {
       results: encodeURIComponent(JSON.stringify(data[0])),
       tests: data[1],
       base_url: req.originalUrl,
-      build_name: data[0][0].build.name
+      build_name: buildName,
+      build_id: req.params.buildId,
+      token: token
     })
-  })
+  }).catch(err => { res.render('builds/show', {
+    results: null,
+    tests: null,
+    base_url: req.originalUrl,
+    build_name: buildName,
+    build_id: req.params.buildId,
+    token: token
+  }) })
 })
 
-
 // Routes for API
-apiRouter.post('/', (req, res) => {
-  const newBuild = { name: req.body.name };
-
-  // Create Build
-  new Build(newBuild)
-    .save()
-    .then(build => {
-      res.send(build);
-    });
-});
-
 apiRouter.post('/:buildId/result', (req, res) => {
   Build.findOne({
     _id: req.params.buildId

@@ -21,8 +21,8 @@ uiRouter.get('/:testId', (req, res) => {
   TestResult.find({ test: req.params.testId })
   .populate('test').then(testResults => {
     res.render('tests/show', {
-      results: testResults,
-      results_data: encodeURIComponent(JSON.stringify(testResults))
+      result_objects: testResults,
+      results: encodeURIComponent(JSON.stringify(testResults))
     });
   }).catch(err => { res.send("No results found")});
 })
@@ -43,7 +43,7 @@ apiRouter.post('/result', (req, res) => {
   .then(test => {
     if (test) {
       const newTestResult = {
-        result: req.body.result,
+        passed: req.body.passed,
         runtime: req.body.runtime,
         test: test._id,
         timestamp: req.body.timestamp,
@@ -54,7 +54,7 @@ apiRouter.post('/result', (req, res) => {
         .save()
         .then(result => {
           res.send(result)
-        });
+        }).catch( err => { res.send(err) });
     } else {
       Build.findOne({
         _id: req.params.buildId
@@ -70,7 +70,7 @@ apiRouter.post('/result', (req, res) => {
         .save()
         .then(test => {
           const newTestResult = {
-            result: req.body.result,
+            passed: req.body.passed,
             runtime: req.body.runtime,
             test: test._id,
             timestamp: req.body.timestamp,

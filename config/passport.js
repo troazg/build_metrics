@@ -1,10 +1,17 @@
 const LocalStrategy = require('passport-local').Strategy;
 const BearerStrategy = require('passport-http-bearer').Strategy;
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
 const mongoose = require('mongoose');
 const User = mongoose.model('users');
+const Build = mongoose.model('builds');
 const bcrypt = require('bcryptjs');
 
 const SECRET = require('./keys').jwtSecret;
+
+var opts = {}
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.secretOrKey = SECRET;
 
 module.exports = function(passport) {
 
@@ -12,6 +19,7 @@ module.exports = function(passport) {
     new LocalStrategy({
       usernameField: 'email',
     }, (email, password, done) => {
+      console.log('Local login');
       // Match user
       User.findOne({
         email: email
@@ -32,26 +40,40 @@ module.exports = function(passport) {
       })
     }));
 
+  passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
+    console.log('API Auth request');
+    console.log(jwt_payload);
 
-  passport.use(
-    new BearerStrategy((token, done) => {
-      try {
-        const { email } = jwt.decode(token, SECRET);
-
-        User.findOne({
-          email: email
-        }).then(user => {
-          if (user) {
-            done(null, user)
-          } else {
-            done(null, false)
-          }
-        })
-      } catch (err) {
-        done(null, false);
+    Build.findById( jwt_payload.build_id, (err, build) => {
+      if (err)
+        return done(err, false);
+      if (build) {
+        return done(null, build);
+      } else {
+        return done(null, false);
       }
-    })
-  );
+    });
+  }));
+
+  // passport.use(
+  //   new BearerStrategy((token, done) => {
+  //     try {
+  //       const { email } = jwt.decode(token, SECRET);
+
+  //       User.findOne({
+  //         email: email
+  //       }).then(user => {
+  //         if (user) {
+  //           done(null, user)
+  //         } else {
+  //           done(null, false)
+  //         }
+  //       })
+  //     } catch (err) {
+  //       done(null, false);
+  //     }
+  //   })
+  // );
 
   passport.serializeUser((user, done) => {
     done(null, user.id);

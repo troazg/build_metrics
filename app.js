@@ -87,7 +87,7 @@ app.get('/', (req, res) => {
 });
 
 // Use routes
-// app.use('/api', passport.authenticate('bearer', { session: false }));
+// app.use('/api', passport.authenticate('jwt', { session: false }));
 app.use('/api', apiRouter);
 app.use('/users', usersRouter);
 app.use('/builds', ensureAuthenticated)
