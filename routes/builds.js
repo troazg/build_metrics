@@ -95,7 +95,7 @@ apiRouter.post('/:buildId/result', (req, res) => {
   }).then(build => {
     const newBuildResult = {
       passed: req.body.passed,
-      time: req.body.time,
+      runtime: req.body.runtime,
       build: build._id,
       link: req.body.link
     }

@@ -19,7 +19,6 @@ module.exports = function(passport) {
     new LocalStrategy({
       usernameField: 'email',
     }, (email, password, done) => {
-      console.log('Local login');
       // Match user
       User.findOne({
         email: email
@@ -41,9 +40,6 @@ module.exports = function(passport) {
     }));
 
   passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
-    console.log('API Auth request');
-    console.log(jwt_payload);
-
     Build.findById( jwt_payload.build_id, (err, build) => {
       if (err)
         return done(err, false);
