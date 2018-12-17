@@ -18,7 +18,7 @@ const BuildResultSchema = new Schema({
   },
   link: {
     type: String,
-    required: true
+    required: false
   },
   timestamp: {
     type: Date,
