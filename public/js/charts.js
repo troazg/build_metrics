@@ -1,7 +1,9 @@
 last30 = data.slice(-30).reverse();
 var timeData = [];
+var timeStamps = [];
 last30.forEach(e => {
   timeData.push(e.runtime)
+  timeStamps.push(e.timestamp)
 })
 
 dateLabels = [];
@@ -24,7 +26,6 @@ data.forEach(e => {
   resultsArrayIndex = assignToBucket(resultDate, bucketDate, e.passed, resultsArrayIndex, passDataSet, failDataSet);
 })
 
-timeData.reverse();
 dateLabels.reverse();
 failDataSet.reverse();
 passDataSet.reverse();
@@ -41,6 +42,21 @@ var timeChart = new Chart(timeChartElement, {
       }]
     },
     options: {
+      tooltips: {
+        custom: function(tooltip) {
+          if (!tooltip) return
+            tooltip.displayColors = false;
+        },
+        callbacks: {
+          label: function(tooltipItem, data) {
+            timestamp = new Date(timeStamps[tooltipItem.index]);
+            return timestamp.toLocaleString('en-US', {timeZone: "America/Denver"})
+          },
+          title: function(tooltipItem, data) {
+            return "Runtime: " + tooltipItem[0].yLabel + " seconds";
+          }
+        }
+      },
       legend: {
         display: false
       },

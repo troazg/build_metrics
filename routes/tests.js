@@ -19,6 +19,8 @@ uiRouter.get('/', (req, res) => {
 
 uiRouter.get('/:testId', (req, res) => {
   TestResult.find({ test: req.params.testId })
+  .sort('-timestamp')
+  .limit(200)
   .populate('test').then(testResults => {
     res.render('tests/show', {
       result_objects: testResults,
@@ -56,32 +58,28 @@ apiRouter.post('/result', (req, res) => {
           res.send(result)
         }).catch( err => { res.send(err) });
     } else {
-      Build.findOne({
-        _id: req.params.buildId
-      }).then(build => {
-        const newTest = {
-          rspecID: req.body.rspecID,
-          description: req.body.description,
-          path: req.body.path,
-          build: build._id
+      const newTest = {
+        rspecID: req.body.rspecID,
+        description: req.body.description,
+        path: req.body.path,
+        build: req.params.buildId
+      };
+
+      new Test(newTest)
+      .save()
+      .then(test => {
+        const newTestResult = {
+          passed: req.body.passed,
+          runtime: req.body.runtime,
+          test: test._id,
+          timestamp: req.body.timestamp,
+          exceptions: req.body.exceptions
         };
 
-        new Test(newTest)
+        new TestResult(newTestResult)
         .save()
-        .then(test => {
-          const newTestResult = {
-            passed: req.body.passed,
-            runtime: req.body.runtime,
-            test: test._id,
-            timestamp: req.body.timestamp,
-            exceptions: req.body.exceptions
-          };
-
-          new TestResult(newTestResult)
-          .save()
-          .then(result => {
-            res.send(result)
-          });
+        .then(result => {
+          res.send(result)
         });
       });
     }

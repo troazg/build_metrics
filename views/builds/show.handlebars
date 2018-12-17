@@ -1,15 +1,39 @@
 <h4>Overall Build Results for: {{build_name}}</h4>
 {{#if admin}}
-<p>
+<p class="clear-fix">
   <a class="btn btn-outline-info btn-sm" data-toggle="collapse" href="#collapseExample" role="button">
     Get Token
   </a>
+  <button type="button" class="btn btn-outline-danger btn-sm float-right" data-toggle="modal" data-target="#confirmDeleteModal">
+    Delete Build
+  </button>
 </p>
 <div class="collapse" id="collapseExample">
   <div class="card card-body">
     <span id="token">{{token}}</span>
   </div>
 </div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete {{build_name}}?</p>
+        <p class="alert alert-danger">This action cannot be reversed.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <form method="POST" action="/builds/{{build_id}}?_method=DELETE">
+          <button type="submit" class="btn btn-danger">Delete Build</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{/if}}
 
 <div class="row">
   <div class="chart-container col-sm">
@@ -19,7 +43,6 @@
     <canvas id="resultChartElement"></canvas>
   </div>
 </div>
-{{/if}}
 <hr/>
 <h4>Individual Tests</h4>
 <table class="table w-auto">

@@ -8,9 +8,12 @@ const handlebars = require('express-handlebars');
 const flash = require('connect-flash');
 const session = require('express-session');
 const path = require('path');
+const methodOverride = require('method-override');
 const { ensureAuthenticated } = require('./helpers/auth');
 
 const app = express();
+
+app.use(methodOverride('_method'))
 
 // Load routes
 const apiRouter = require('./routes/api')
