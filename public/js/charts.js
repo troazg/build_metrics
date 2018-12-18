@@ -70,11 +70,6 @@ var timeChart = new Chart(timeChartElement, {
           ticks: {
             display: false
           }
-        }],
-        yAxes: [{
-          ticks: {
-            suggestedMin: 0
-          }
         }]
       }
     }
@@ -109,7 +104,6 @@ var resultsChart = new Chart(resultChartElement, {
       yAxes: [{
         stacked: true,
         ticks: {
-          min: 0,
           stepSize: 1,
           autoSkip: false
         }
