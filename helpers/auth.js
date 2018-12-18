@@ -25,5 +25,12 @@ module.exports = {
     } else {
       return next();
     }
+  },
+
+  ensure2fa: function(req, res, next){
+    if(req.session.secondFactor) {
+      return next();
+    }
+    res.redirect('/users/2faCheck');
   }
 }

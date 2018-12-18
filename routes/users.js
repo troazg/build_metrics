@@ -5,17 +5,21 @@ const crypto = require('crypto');
 const async = require('async');
 const nodemailer = require('nodemailer');
 const sgTransport = require('nodemailer-sendgrid-transport');
+const base32 = require('thirty-two');
 const keys = require('../config/keys');
 const router = express.Router();
-const { adminOnly, ensureGuest } = require('../helpers/auth');
+const { adminOnly, ensureGuest, ensureAuthenticated, ensure2fa } = require('../helpers/auth');
 
 // Load User model
 require('../models/User');
+require('../models/G2FA');
 const User = mongoose.model('users');
+const G2FA = mongoose.model('G2FA');
 
 // /users/logout
 router.get('/logout', (req, res) => {
  req.logout();
+ req.session.secondFactor = undefined;
  req.flash('success_msg', 'You have been logged out.');
  res.redirect('/users/login');
 });
@@ -27,19 +31,25 @@ router.get('/login', ensureGuest, (req, res) => {
 
 router.post('/login',
   passport.authenticate('local', {
-    successRedirect: '/',
     failureRedirect: '/users/login',
     failureFlash: true
-  })
+  }), (req, res) => {
+    G2FA.findOne({'username': req.user.username}).then(token => {
+      if (token)
+        res.redirect('/users/2faCheck')
+      else
+        res.redirect('/users/setup2fa')
+    })
+  }
 );
 
 
 // /users/register
-router.get('/register', adminOnly, (req, res) => {
+router.get('/register', adminOnly, ensure2fa, (req, res) => {
   res.render('users/register');
 });
 
-router.post('/register', adminOnly, (req, res) => {
+router.post('/register', adminOnly, ensure2fa, (req, res) => {
 
   let errors = [];
 
@@ -185,6 +195,44 @@ router.post('/reset/:token', function(req, res) {
       })
     }
   })
+});
+
+router.get('/2faCheck', ensureAuthenticated, (req, res) => {
+  res.render('users/check2fa')
+})
+
+router.get('/setup2FA', ensureAuthenticated, (req,res) => {
+  req.session.secondFactor = 'skip';
+  res.render('users/setup2fa');
+});
+
+router.get('/setupG2FA', ensureAuthenticated, (req,res) => {
+  G2FA.findOne({'username': req.user.username}, (err,user) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      var secret;
+      if (user !== null) {
+        secret = user.secret;
+      } else {
+        //generate random key
+        secret = crypto.randomBytes(16);
+        var newToken = new G2FA({username: req.user.username, secret: secret});
+        newToken.save(function(err,tok){
+
+        });
+      }
+      var encodedKey = base32.encode(secret);
+      var otpUrl = 'otpauth://totp/2FADemo:' + req.user.username + '?secret=' + encodedKey + '&period=30&issuer=2FADemo';
+      var qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
+      res.send(qrImage);
+    }
+  });
+});
+
+router.post('/loginG2FA', ensureAuthenticated, passport.authenticate('totp'), function(req, res){
+  req.session.secondFactor = 'g2fa';
+  res.send();
 });
 
 module.exports = router;

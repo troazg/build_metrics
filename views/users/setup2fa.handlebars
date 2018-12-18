@@ -1,0 +1,64 @@
+
+<div>
+  <h1>Enable 2 Factor Authentication</h1>
+  <p>You may enable 2FA using an application such as Google Authenticator (<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Android</a> & <a href="https://itunes.apple.com/gb/app/google-authenticator/id388497605?mt=8">iPhone</a>) by generating a code to scan, or you can <a href="/">skip for now.</a></p>
+  <button id="setupGoogle" class="btn btn-outline-success">Generate code</button>
+</div>
+<div>
+  <div id="workspace">
+  </div>
+</div>
+<script type="application/javascript">
+  function clearWorkspace() {
+    var element = document.getElementById('workspace');
+    while (element.firstChild) {
+      element.removeChild(element.firstChild);
+    }
+  }
+  var xhr = new XMLHttpRequest();
+  var googleButton = document.getElementById('setupGoogle');
+  googleButton.onclick = function setupGoogle() {
+    clearWorkspace();
+    xhr.open('GET', '/users/setupG2FA',true);
+    xhr.onreadystatechange = function () {
+      if(xhr.readyState == 4 && xhr.status == 200) {
+        var message = document.createElement('p');
+        message.innerHTML = 'Scan the QR code with the app then enter the code in the box and hit submit';
+        document.getElementById('workspace').appendChild(message);
+        var qrurl = xhr.responseText;
+        var image = document.createElement('img');
+        image.setAttribute('src', qrurl);
+        document.getElementById('workspace').appendChild(image);
+        var code = document.createElement('input');
+        code.setAttribute('type', 'number');
+        code.setAttribute('id', 'code');
+        document.getElementById('workspace').appendChild(code);
+        var submitG2FA = document.createElement('button');
+        submitG2FA.setAttribute('id', 'submitG2FA');
+        submitG2FA.setAttribute('class', 'btn btn-primary');
+        submitG2FA.innerHTML = 'Submit';
+        document.getElementById('workspace').appendChild(submitG2FA);
+        submitG2FA.onclick = function() {
+          var pass = document.getElementById('code').value;
+          console.log(pass);
+          var xhr2 = new XMLHttpRequest();
+          xhr2.open('POST', '/users/loginG2FA', true);
+          xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+          xhr2.onreadystatechange = function() {
+            if (xhr2.readyState == 4 && xhr2.status == 200) {
+              clearWorkspace();
+              document.getElementById('workspace').innerHTML='Google Authenticator all setup';
+            } else if (xhr2.readyState == 4 && xhr2.status !== 200) {
+              clearWorkspace();
+              document.getElementById('workspace').innerHTML='Error setting up Google Authenticator';
+            }
+          }
+          xhr2.send('code='+pass);
+        }
+      } else if (xhr.readyState == 4 && xhr.status !== 200) {
+        document.getElementById('workspace').innerHTML ="error setting up Google 2FA";
+      }
+    };
+    xhr.send();
+  }
+</script>

@@ -9,7 +9,7 @@ const flash = require('connect-flash');
 const session = require('express-session');
 const path = require('path');
 const methodOverride = require('method-override');
-const { ensureAuthenticated } = require('./helpers/auth');
+const { ensureAuthenticated, ensure2fa } = require('./helpers/auth');
 
 const app = express();
 
@@ -85,15 +85,14 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/', (req, res) => {
+app.all('/', (req, res) => {
   res.redirect('/builds');
 });
 
 // Use routes
-// app.use('/api', passport.authenticate('jwt', { session: false }));
 app.use('/api', apiRouter);
 app.use('/users', usersRouter);
-app.use('/builds', ensureAuthenticated)
+app.use('/builds', ensureAuthenticated, ensure2fa)
 app.use('/builds', buildsRouter.ui);
 
 const port = process.env.PORT || 5000;

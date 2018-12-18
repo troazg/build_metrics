@@ -1,10 +1,11 @@
 const LocalStrategy = require('passport-local').Strategy;
-const BearerStrategy = require('passport-http-bearer').Strategy;
 const JwtStrategy = require('passport-jwt').Strategy;
+var TotpStrategy = require('passport-totp').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const mongoose = require('mongoose');
 const User = mongoose.model('users');
 const Build = mongoose.model('builds');
+const G2FA = mongoose.model('G2FA');
 const bcrypt = require('bcryptjs');
 
 const SECRET = require('./keys').jwtSecret;
@@ -51,25 +52,15 @@ module.exports = function(passport) {
     });
   }));
 
-  // passport.use(
-  //   new BearerStrategy((token, done) => {
-  //     try {
-  //       const { email } = jwt.decode(token, SECRET);
+  passport.use(new TotpStrategy((user, done) => {
+    G2FA.findOne({'username': user.username}, (err, user) => {
+      if (err) {
+        return done(err)
+      }
+      return done(null, user.secret, 30)
+    })
+  }))
 
-  //       User.findOne({
-  //         email: email
-  //       }).then(user => {
-  //         if (user) {
-  //           done(null, user)
-  //         } else {
-  //           done(null, false)
-  //         }
-  //       })
-  //     } catch (err) {
-  //       done(null, false);
-  //     }
-  //   })
-  // );
 
   passport.serializeUser((user, done) => {
     done(null, user.id);
